@@ -27,11 +27,11 @@ services:
         - local-dev
 
   # This service mimics the actual AWS Lambda environment
-  # lambda-test:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.aws
-  #   ports:
-  #     - "9000:8080"
-  #   environment:
-  #     - ENV=production
+  lambda-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.aws
+    ports:
+      - "9000:8080"
+    environment:
+      - ENV=production

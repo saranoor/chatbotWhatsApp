@@ -49,3 +49,31 @@ docker compose up # to run all services
 https://developers.facebook.com/apps/
 Got to your app chatbotEuroInc -> app -> usecase -> cusotmize -> configuration
 <!-- https://eurychoric-mitsuko-pseudomonoclinic.ngrok-free.dev --> +/webhook
+
+# test the whatsApp messages
+
+case 1: 42372309256 -> test id
+case 2: other number -> test id ->> cant verify in test mode
+
+# aws docker
+docker build -f Dockerfile.aws -t myapp:aws .
+docker compose up 
+
+test this on github to test lambda-test by running test_lambda.py
+
+curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
+-d '{
+    "resource": "/",
+    "path": "/",
+    "httpMethod": "GET",
+    "requestContext": {},
+    "multiValueQueryStringParameters": null,
+    "queryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "headers": {
+        "Accept": "application/json"
+    },
+    "body": null,
+    "isBase64Encoded": false
+}'

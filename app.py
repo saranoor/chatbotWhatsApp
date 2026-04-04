@@ -6,6 +6,7 @@ from fastapi import Response
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from mangum import Mangum
 
 base_path = Path(__file__).resolve().parent
 env_path = base_path / ".env"
@@ -16,9 +17,8 @@ VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "whatsapp_webhook_123")
 WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
 
-print(f"Loaded WHATSAPP TOKEN: {WHATSAPP_TOKEN}")
 
-genai.configure(api_key="AIzaSyC6DAe8Wsa_7Xj5IraqV-SmQI3ccDsEEIk")
+genai.configure(api_key="AIzaSyC6DAe8Wsa_7Xj5IraqV-xxxxx")
 model = genai.GenerativeModel("gemini-3-flash-preview")
 
 app = FastAPI()
@@ -32,6 +32,8 @@ class DisableNgrokWarning(BaseHTTPMiddleware):
 
 
 app.add_middleware(DisableNgrokWarning)
+
+handler = Mangum(app)
 
 
 @app.get("/")
@@ -95,6 +97,7 @@ async def send_whatsapp_message(to, text):
 
 async def get_ai_answer(user_input):
     # Integrate OpenAI or your LLM logic here
+    # TODO: Replace this with actual API calls to your AI model
     # prompt = f" Answer this: {user_input}"
     # response = model.generate_content(prompt)
     # return response.text
@@ -106,4 +109,9 @@ async def get_ai_answer(user_input):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "app:app", host="0.0.0.0", port=8000, reload=True, reload_includes=["*.py"]
+    )
+
+    # TO DO: Add error handling, logging, and more robust AI integration!
