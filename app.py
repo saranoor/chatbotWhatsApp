@@ -7,15 +7,28 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from mangum import Mangum
+import boto3
 
 base_path = Path(__file__).resolve().parent
 env_path = base_path / ".env"
 
 load_dotenv(env_path)
 
-VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "whatsapp_webhook_123")
-WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
-PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
+secrets = boto3.client("secretsmanager")
+
+
+def get_secret(name):
+    response = secrets.get_secret_value(SecretId=name)
+    return response["SecretString"]
+
+
+# VERIFY_TOKEN = os.getenv("VERIFY_TOKEN", "whatsapp_webhook_123")
+# WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
+# PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
+
+VERIFY_TOKEN = get_secret("verify_token")
+WHATSAPP_TOKEN = get_secret("whatsapp_token")
+PHONE_NUMBER_ID = get_secret("phone_number_id")
 
 
 genai.configure(api_key="AIzaSyC6DAe8Wsa_7Xj5IraqV-xxxxx")

@@ -47,7 +47,7 @@ docker compose up # to run all services
 
 # now go to ngrok contianer, open the port it is running and copy the forwarding url for eg and copy to META
 https://developers.facebook.com/apps/
-Got to your app chatbotEuroInc -> app -> usecase -> cusotmize -> configuration
+Got to your (Meta Developer console) -> app chatbotEuroInc -> app -> usecase -> cusotmize -> configuration
 <!-- https://eurychoric-mitsuko-pseudomonoclinic.ngrok-free.dev --> +/webhook
 
 # test the whatsApp messages
@@ -77,3 +77,36 @@ curl -X POST "http://localhost:9000/2015-03-31/functions/function/invocations" \
     "body": null,
     "isBase64Encoded": false
 }'
+
+# setup cloud infra
+
+goto aws console
+got AWS ECR -> create registry with default -> view commands
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 357457231130.dkr.ecr.us-east-1.amazonaws.com
+aws configure * if not
+# push image to aws
+docker buildx build --provenance=false --platform linux/arm64 -t 357457231130.dkr.ecr.us-east-1.amazonaws.com/whatsapp-ai-bot:latest -f Dockerfile.aws --push .
+...
+
+# create lambda function
+
+# create API Gateway
+make sure logs are being logged in cloud watch
+
+# update lambda permission
+create lambda permission for API Gateway
+
+# Goto Meta Developer Console
+Got to your (Meta Developer console) -> app chatbotEuroInc -> app -> usecase -> cusotmize -> configuration
+
+# troubleshoot
+- check logs
+- check route 
+- manually trigger the webhook and see if it validates
+
+# set env variable through AWS Secret manager
+
+# Grant Lambda Permission to Access Secrets
+aws iam put-role-policy --role-name whatsapp-webhook-handler-role-m9poi2dt --policy-name SecretsAccess --policy-document file://secrets-policy.json
+
+# if making changes to local how to manually push it to aws 
