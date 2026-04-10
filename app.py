@@ -100,6 +100,7 @@ async def send_whatsapp_message(to, text):
         "text": {"body": text},
     }
 
+    # why use async and not celery?
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=payload, headers=headers)
         # DEBUGGING LINES:

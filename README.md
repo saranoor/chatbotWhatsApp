@@ -106,7 +106,27 @@ Got to your (Meta Developer console) -> app chatbotEuroInc -> app -> usecase -> 
 
 # set env variable through AWS Secret manager
 
+# allows lambda to access those env variable
+lambda secrets policy -> attach policy to lambda role
+
 # Grant Lambda Permission to Access Secrets
 aws iam put-role-policy --role-name whatsapp-webhook-handler-role-m9poi2dt --policy-name SecretsAccess --policy-document file://secrets-policy.json
 
 # if making changes to local how to manually push it to aws 
+-build the image again
+
+-docker buildx build \
+  --provenance=false \
+  --platform linux/arm64 \
+  -t 357457231130.dkr.ecr.us-east-1.amazonaws.com/whatsapp-ai-bot:latest \
+  -f Dockerfile.aws \
+  --push .
+
+-aws lambda update-function-code \
+  --function-name whatsapp-webhook \
+  --image-uri 357457231130.dkr.ecr.us-east-1.amazonaws.com/whatsapp-ai-bot:latest
+
+- update lambda
+aws lambda update-function-code \
+  --function-name whatsapp-webhook \
+  --image-uri 357457231130.dkr.ecr.us-east-1.amazonaws.com/whatsapp-ai-bot:latest
