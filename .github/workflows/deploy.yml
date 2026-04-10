@@ -22,3 +22,23 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build, Tag, and Push Image to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: whatsapp-ai-bot # Change this
+        IMAGE_TAG: ${{ github.sha }}        # Uses git commit hash as tag
+      run: |
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Update Lambda Function Code
+      env:
+        LAMBDA_FUNCTION_NAME: whatsapp-webhook-handler # Change this
+        IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/whatsapp-ai-bot:${{ github.sha }}
+      run: |
+        aws lambda update-function-code \
+          --function-name $LAMBDA_FUNCTION_NAME \
+          --image-uri $IMAGE_URI
