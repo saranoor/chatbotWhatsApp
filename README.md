@@ -130,3 +130,10 @@ aws iam put-role-policy --role-name whatsapp-webhook-handler-role-m9poi2dt --pol
 aws lambda update-function-code \
   --function-name whatsapp-webhook \
   --image-uri 357457231130.dkr.ecr.us-east-1.amazonaws.com/whatsapp-ai-bot:latest
+
+# Automate deployment to aws -> local to aws with CI/CD Github Action
+
+# after CI/CD it is not replying back? debug the issue
+- logs
+    - 2026-04-10T11:50:10.408Z
+INIT_REPORT Init Duration: 2.88 ms	Phase: invoke	Status: error	Error Type: Runtime.InvalidEntrypoint
