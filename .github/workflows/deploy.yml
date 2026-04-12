@@ -42,3 +42,5 @@ jobs:
         aws lambda update-function-code \
           --function-name $LAMBDA_FUNCTION_NAME \
           --image-uri $IMAGE_URI
+
+# ✅ UPDATE: Ensure your Lambda function is configured to use the container image and that the IAM role has necessary permissions for ECR access.
