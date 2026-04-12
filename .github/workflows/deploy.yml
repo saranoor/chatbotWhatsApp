@@ -36,11 +36,10 @@ jobs:
 
     - name: Update Lambda Function Code
       env:
-        LAMBDA_FUNCTION_NAME: whatsapp-chatbot-v2  # ✅ UPDATE: Your NEW Lambda function name
+        LAMBDA_FUNCTION_NAME: whatsapp-chatbot-v3  # ✅ UPDATE: Your NEW Lambda function name
         IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/whatsapp-ai-bot:${{ github.sha }}
       run: |
         aws lambda update-function-code \
           --function-name $LAMBDA_FUNCTION_NAME \
           --image-uri $IMAGE_URI
 
-# ✅ UPDATE: Ensure your Lambda function is configured to use the container image and that the IAM role has necessary permissions for ECR access.
