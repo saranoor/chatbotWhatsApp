@@ -36,7 +36,7 @@ jobs:
 
     - name: Update Lambda Function Code
       env:
-        LAMBDA_FUNCTION_NAME: whatsapp-chatbot-v3  # ✅ UPDATE: Your NEW Lambda function name
+        LAMBDA_FUNCTION_NAME: whatapp-chatbot-v3  # ✅ UPDATE: Your NEW Lambda function name
         IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/whatsapp-ai-bot:${{ github.sha }}
       run: |
         aws lambda update-function-code \
