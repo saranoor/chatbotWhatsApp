@@ -38,7 +38,7 @@ jobs:
 
     - name: Update Lambda Function Code
       env:
-        LAMBDA_FUNCTION_NAME: whatsapp-webhook-handler # Change this
+        LAMBDA_FUNCTION_NAME: whatsapp-webhook-handler # Change this thing
         IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/whatsapp-ai-bot:${{ github.sha }}
       run: |
         aws lambda update-function-code \
