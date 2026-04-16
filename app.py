@@ -29,9 +29,9 @@ def get_secret(name):
 VERIFY_TOKEN = get_secret("verify_token")
 WHATSAPP_TOKEN = get_secret("whatsapp_token")
 PHONE_NUMBER_ID = get_secret("phone_number_id")
+LLM_API_KEY = get_secret("llm_api_key")
 
-
-genai.configure(api_key="AIzaSyC6DAe8Wsa_7Xj5IraqV-xxxxx")
+genai.configure(api_key=LLM_API_KEY)
 model = genai.GenerativeModel("gemini-3-flash-preview")
 
 app = FastAPI()
@@ -103,18 +103,16 @@ async def send_whatsapp_message(to, text):
     # why use async and not celery?
     async with httpx.AsyncClient() as client:
         response = await client.post(url, json=payload, headers=headers)
-        # DEBUGGING LINES:
         print(f"API Response Body: {response.json()}")
 
         return response.json()
 
 
 async def get_ai_answer(user_input):
-    # Integrate OpenAI or your LLM logic here
     # TODO: Replace this with actual API calls to your AI model
-    # prompt = f" Answer this: {user_input}"
-    # response = model.generate_content(prompt)
-    # return response.text
+    prompt = f" Answer this: {user_input}"
+    response = model.generate_content(prompt)
+    return response.text
     print(f"Getting AI answer for: {user_input}")
     return f"AI says: You sent '{user_input}'"
 
