@@ -31,8 +31,8 @@ WHATSAPP_TOKEN = get_secret("whatsapp_token")
 PHONE_NUMBER_ID = get_secret("phone_number_id")
 LLM_API_KEY = get_secret("llm_api_key")
 
-genai.configure(api_key=LLM_API_KEY)
-model = genai.GenerativeModel("gemini-3-flash-preview")
+# genai.configure(api_key=LLM_API_KEY)
+# model = genai.GenerativeModel("gemini-3-flash-preview")
 
 app = FastAPI()
 
@@ -110,9 +110,9 @@ async def send_whatsapp_message(to, text):
 
 async def get_ai_answer(user_input):
     # TODO: Replace this with actual API calls to your AI model
-    prompt = f" Answer this: {user_input}"
-    response = model.generate_content(prompt)
-    return response.text
+    # prompt = f" Answer this: {user_input}"
+    # response = model.generate_content(prompt)
+    # return response.text
     print(f"Getting AI answer for: {user_input}")
     return f"AI says: You sent '{user_input}'"
 
