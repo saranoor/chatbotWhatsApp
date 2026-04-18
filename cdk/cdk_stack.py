@@ -66,8 +66,14 @@ class WhatsappBotStack(Stack):
         # 5. SQS Event Source
         handler.add_event_source(events.SqsEventSource(queue))
 
-        # 6. API Gateway -> SNS Integration
+        # 6. API Gateway Setup
         api = apigw.RestApi(self, "WhatsappApi")
+        webhook_res = api.root.add_resource("webhook")
+
+        # --- GET Method: Direct to Lambda (For Meta Verification) ---
+        webhook_res.add_method("GET", apigw.LambdaIntegration(handler))
+
+        # --- POST Method: SNS -> SQS (For Processing Messages) ---
         api_gw_role = iam.Role(
             self,
             "ApiGwRole",
