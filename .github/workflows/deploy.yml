@@ -62,6 +62,7 @@ jobs:
         npm install -g aws-cdk
         pip install aws-cdk-lib constructs
         cd cdk
+        cdk bootstrap  # <--- Add this line here
         cdk deploy --require-approval never
 
     - name: Update Lambda Function Code
