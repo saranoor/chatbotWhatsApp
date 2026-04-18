@@ -67,7 +67,17 @@ class WhatsappBotStack(Stack):
         handler.add_event_source(events.SqsEventSource(queue))
 
         # 6. API Gateway Setup
-        api = apigw.RestApi(self, "WhatsappApi")
+        api = apigw.RestApi(
+            self,
+            "WhatsappApi",
+            deploy_options=apigw.StageOptions(
+                stage_name="prod",
+                logging_level=apigw.MethodLoggingLevel.INFO,
+                data_trace_enabled=True,
+                metrics_enabled=True,
+            ),
+        )
+
         webhook_res = api.root.add_resource("webhook")
 
         # --- GET Method: Direct to Lambda (For Meta Verification) ---
@@ -81,6 +91,21 @@ class WhatsappBotStack(Stack):
         )
         topic.grant_publish(api_gw_role)
 
+        api_gateway_cloudwatch_role = iam.Role(
+            self,
+            "ApiGatewayCloudWatchRole",
+            assumed_by=iam.ServicePrincipal("apigateway.amazonaws.com"),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    "service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+                )
+            ],
+        )
+        apigw.CfnAccount(
+            self,
+            "ApiGatewayAccount",
+            cloud_watch_role_arn=api_gateway_cloudwatch_role.role_arn,
+        )
         sns_integration = apigw.AwsIntegration(
             service="sns",
             action="Publish",
