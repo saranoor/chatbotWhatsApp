@@ -9,7 +9,7 @@ with patch("boto3.client") as mock_boto:
     mock_boto.return_value = mock_client
 
     # Now import your app
-    from app import app, VERIFY_TOKEN
+    from app.app import app, VERIFY_TOKEN
 
 client = TestClient(app)
 
