@@ -100,7 +100,7 @@ class WhatsappBotStack(Stack):
             ),
         )
 
-        api.root.add_resource("webhook").add_method(
+        webhook_res.add_method(
             "POST",
             sns_integration,
             method_responses=[apigw.MethodResponse(status_code="200")],
