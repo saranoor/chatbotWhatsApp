@@ -39,8 +39,8 @@ def test_webhook_verification_forbidden():
 
 
 ## Test 2: Message Handling (POST)
-@patch("app.send_whatsapp_message")
-@patch("app.get_ai_answer")
+@patch("app.app.send_whatsapp_message")
+@patch("app.app.get_ai_answer")
 def test_handle_message_flow(mock_ai, mock_whatsapp):
     """Tests the full flow: Receive -> AI -> WhatsApp Reply."""
     # Setup mocks
