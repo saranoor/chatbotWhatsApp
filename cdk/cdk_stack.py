@@ -115,13 +115,17 @@ class WhatsappBotStack(Stack):
                     "integration.request.header.Content-Type": "'application/x-www-form-urlencoded'"
                 },
                 request_templates={
-                    "application/json": f"""
-                    Action=Publish&
-                    TopicArn=$util.urlEncode('{topic.topic_arn}')&
-                    Message=$util.urlEncode($input.json('$'))
-                    """
+                    "application/json": (
+                        "Action=Publish&"
+                        f"TopicArn=$util.urlEncode('{topic.topic_arn}')&"
+                        "Message=$util.urlEncode($input.body)"
+                    )
                 },
-                integration_responses=[apigw.IntegrationResponse(status_code="200")],
+                integration_responses=[
+                    apigw.IntegrationResponse(
+                        status_code="200", response_templates={"application/json": ""}
+                    )
+                ],
             ),
         )
 
