@@ -44,16 +44,29 @@ jobs:
     - name: Build, Tag, and Push Image to ECR
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: whatsapp-ai-bot  # ✅ UPDATE: Match your ECR repository name
+        ECR_REPOSITORY: whatsapp-ai-bot
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build --platform linux/x86_64 -f Dockerfile.aws -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build --platform linux/x86_64 -f Dockerfile.aws -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest  # Added: push latest for CDK to reference
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Deploy Infrastructure (CDK)
+      run: |
+        npm install -g aws-cdk
+        pip install aws-cdk-lib constructs
+        cd cdk
+        cdk deploy --require-approval never
 
     - name: Update Lambda Function Code
       env:
-        LAMBDA_FUNCTION_NAME: whatapp-chatbot-v3  # ✅ UPDATE: Your NEW Lambda function name
+        LAMBDA_FUNCTION_NAME: whatsapp-bot-handler
         IMAGE_URI: ${{ steps.login-ecr.outputs.registry }}/whatsapp-ai-bot:${{ github.sha }}
       run: |
         aws lambda update-function-code \
