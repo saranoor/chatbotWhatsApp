@@ -1,7 +1,7 @@
 import json
 import pytest
 from unittest.mock import AsyncMock, patch
-import app import app  # Assuming your file is named app.py
+from app import app  # Assuming your file is named app.py
 
 # --- Mock Data ---
 
