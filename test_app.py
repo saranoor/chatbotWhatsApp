@@ -11,7 +11,7 @@ os.environ["AWS_SECURITY_TOKEN"] = "testing"
 os.environ["AWS_SESSION_TOKEN"] = "testing"
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 
-from app import app  # Assuming your file is named app.py
+from app import app as app_module  # Assuming your file is named app.py
 
 # ... rest of your tests
 # --- Mock Data ---
@@ -55,13 +55,13 @@ def sqs_sns_event():
 # --- Tests ---
 
 
-@patch("app.get_secret")
+@patch("app.app.get_secret")
 def test_verify_webhook_success(mock_secret, api_gateway_get_event):
     """Test successful Meta verification"""
     mock_secret.return_value = "whatsapp_webhook_123"
-    app.VERIFY_TOKEN = "whatsapp_webhook_123"  # Update global
+    app_module.VERIFY_TOKEN = "whatsapp_webhook_123"  # Update global
 
-    response = app.lambda_handler(api_gateway_get_event, None)
+    response = app_module.lambda_handler(api_gateway_get_event, None)
 
     assert response["statusCode"] == 200
     assert response["body"] == "1158201444"
@@ -70,17 +70,17 @@ def test_verify_webhook_success(mock_secret, api_gateway_get_event):
 
 def test_verify_webhook_forbidden(api_gateway_get_event):
     """Test verification with wrong token"""
-    app.VERIFY_TOKEN = "wrong_token"
+    app_module.VERIFY_TOKEN = "wrong_token"
 
-    response = app.lambda_handler(api_gateway_get_event, None)
+    response = app_module.lambda_handler(api_gateway_get_event, None)
 
     assert response["statusCode"] == 403
     assert response["body"] == "Forbidden"
 
 
 @pytest.mark.asyncio
-@patch("app.send_whatsapp_message", new_callable=AsyncMock)
-@patch("app.get_ai_answer", new_callable=AsyncMock)
+@patch("app.app.send_whatsapp_message", new_callable=AsyncMock)
+@patch("app.app.get_ai_answer", new_callable=AsyncMock)
 async def test_process_whatsapp_message(mock_ai, mock_send, sqs_sns_event):
     """Test the async processing of an SQS message"""
     # Setup mocks
@@ -88,7 +88,7 @@ async def test_process_whatsapp_message(mock_ai, mock_send, sqs_sns_event):
     mock_send.return_value = {"status": "sent"}
 
     # Run the lambda_handler
-    response = app.lambda_handler(sqs_sns_event, None)
+    response = app_module.lambda_handler(sqs_sns_event, None)
 
     assert response["statusCode"] == 200
     mock_ai.assert_called_once_with("Hello AI!")
@@ -107,10 +107,10 @@ async def test_send_whatsapp_api_call(mock_post):
     }
     mock_post.return_value = mock_response
 
-    app.PHONE_NUMBER_ID = "12345"
-    app.WHATSAPP_TOKEN = "token"
+    app_module.PHONE_NUMBER_ID = "12345"
+    app_module.WHATSAPP_TOKEN = "token"
 
-    result = await app.send_whatsapp_message("123456789", "Test Message")
+    result = await app_module.send_whatsapp_message("123456789", "Test Message")
 
     assert "messaging_product" in result
     mock_post.assert_called_once()
