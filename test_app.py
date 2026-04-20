@@ -2,11 +2,7 @@ import json
 import pytest
 from unittest.mock import AsyncMock, patch
 from unittest.mock import patch, MagicMock
-from app import app  # Assuming your file is named app.py
-
 import os
-import pytest
-from unittest.mock import patch, MagicMock
 
 # 1. Set dummy environment variables BEFORE importing app
 os.environ["AWS_ACCESS_KEY_ID"] = "testing"
@@ -14,6 +10,8 @@ os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
 os.environ["AWS_SECURITY_TOKEN"] = "testing"
 os.environ["AWS_SESSION_TOKEN"] = "testing"
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
+from app import app  # Assuming your file is named app.py
 
 # ... rest of your tests
 # --- Mock Data ---
