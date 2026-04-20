@@ -1,60 +1,35 @@
+import json
 import pytest
-from unittest.mock import patch, MagicMock
-from fastapi.testclient import TestClient
+from unittest.mock import AsyncMock, patch
+import app  # Assuming your file is named app.py
 
-# 1. Mock Boto3 Secrets Manager BEFORE importing the app
-with patch("boto3.client") as mock_boto:
-    mock_client = MagicMock()
-    mock_client.get_secret_value.return_value = {"SecretString": "test_secret_value"}
-    mock_boto.return_value = mock_client
-
-    # Now import your app
-    from app.app import app, VERIFY_TOKEN
-
-client = TestClient(app)
+# --- Mock Data ---
 
 
-## Test 1: Webhook Verification (GET)
-def test_webhook_verification_success():
-    """Tests the WhatsApp handshake logic."""
-    params = {
-        "hub.mode": "subscribe",
-        "hub.verify_token": "test_secret_value",  # Matches the mocked secret
-        "hub.challenge": "12345",
+@pytest.fixture
+def api_gateway_get_event():
+    """Simulates Meta's Verification Request"""
+    return {
+        "httpMethod": "GET",
+        "queryStringParameters": {
+            "hub.mode": "subscribe",
+            "hub.verify_token": "whatsapp_webhook_123",
+            "hub.challenge": "1158201444",
+        },
     }
-    response = client.get("/webhook", params=params)
-    assert response.status_code == 200
-    assert response.text == "12345"
 
 
-def test_webhook_verification_forbidden():
-    """Tests failure when token is incorrect."""
-    params = {
-        "hub.mode": "subscribe",
-        "hub.verify_token": "wrong_token",
-        "hub.challenge": "12345",
-    }
-    response = client.get("/webhook", params=params)
-    assert response.status_code == 403
-
-
-## Test 2: Message Handling (POST)
-@patch("app.app.send_whatsapp_message")
-@patch("app.app.get_ai_answer")
-def test_handle_message_flow(mock_ai, mock_whatsapp):
-    """Tests the full flow: Receive -> AI -> WhatsApp Reply."""
-    # Setup mocks
-    mock_ai.return_value = "AI says: Hello"
-    mock_whatsapp.return_value = {"status": "success"}
-
-    payload = {
+@pytest.fixture
+def sqs_sns_event():
+    """Simulates an SQS event containing an SNS-wrapped WhatsApp message"""
+    meta_payload = {
         "entry": [
             {
                 "changes": [
                     {
                         "value": {
                             "messages": [
-                                {"from": "123456789", "text": {"body": "Hi there"}}
+                                {"from": "123456789", "text": {"body": "Hello AI!"}}
                             ]
                         }
                     }
@@ -62,13 +37,69 @@ def test_handle_message_flow(mock_ai, mock_whatsapp):
             }
         ]
     }
+    sns_wrapper = {"Message": json.dumps(meta_payload)}
+    return {"Records": [{"body": json.dumps(sns_wrapper)}]}
 
-    response = client.post("/webhook", json=payload)
 
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+# --- Tests ---
 
-    # Verify the AI was called with the right text
-    mock_ai.assert_called_once_with("Hi there")
-    # Verify WhatsApp reply was sent to the right person
-    mock_whatsapp.assert_called_once_with("123456789", "AI says: Hello")
+
+@patch("app.get_secret")
+def test_verify_webhook_success(mock_secret, api_gateway_get_event):
+    """Test successful Meta verification"""
+    mock_secret.return_value = "whatsapp_webhook_123"
+    app.VERIFY_TOKEN = "whatsapp_webhook_123"  # Update global
+
+    response = app.lambda_handler(api_gateway_get_event, None)
+
+    assert response["statusCode"] == 200
+    assert response["body"] == "1158201444"
+    assert response["headers"]["Content-Type"] == "text/plain"
+
+
+def test_verify_webhook_forbidden(api_gateway_get_event):
+    """Test verification with wrong token"""
+    app.VERIFY_TOKEN = "wrong_token"
+
+    response = app.lambda_handler(api_gateway_get_event, None)
+
+    assert response["statusCode"] == 403
+    assert response["body"] == "Forbidden"
+
+
+@pytest.mark.asyncio
+@patch("app.send_whatsapp_message", new_callable=AsyncMock)
+@patch("app.get_ai_answer", new_callable=AsyncMock)
+async def test_process_whatsapp_message(mock_ai, mock_send, sqs_sns_event):
+    """Test the async processing of an SQS message"""
+    # Setup mocks
+    mock_ai.return_value = "AI Response"
+    mock_send.return_value = {"status": "sent"}
+
+    # Run the handler
+    response = app.lambda_handler(sqs_sns_event, None)
+
+    assert response["statusCode"] == 200
+    mock_ai.assert_called_once_with("Hello AI!")
+    mock_send.assert_called_once_with("123456789", "AI Response")
+
+
+@patch("httpx.AsyncClient.post")
+@pytest.mark.asyncio
+async def test_send_whatsapp_api_call(mock_post):
+    """Test the actual HTTP call to Meta Graph API"""
+    # Mock the HTTP response
+    mock_response = AsyncMock()
+    mock_response.json.return_value = {
+        "messaging_product": "whatsapp",
+        "contacts": [{"input": "to_num", "wa_id": "wa_id"}],
+    }
+    mock_post.return_value = mock_response
+
+    app.PHONE_NUMBER_ID = "12345"
+    app.WHATSAPP_TOKEN = "token"
+
+    result = await app.send_whatsapp_message("123456789", "Test Message")
+
+    assert "messaging_product" in result
+    mock_post.assert_called_once()
