@@ -61,7 +61,7 @@ def test_verify_webhook_success(mock_secret, api_gateway_get_event):
     mock_secret.return_value = "whatsapp_webhook_123"
     app.VERIFY_TOKEN = "whatsapp_webhook_123"  # Update global
 
-    response = app.handler(api_gateway_get_event, None)
+    response = app.lambda_handler(api_gateway_get_event, None)
 
     assert response["statusCode"] == 200
     assert response["body"] == "1158201444"
@@ -72,7 +72,7 @@ def test_verify_webhook_forbidden(api_gateway_get_event):
     """Test verification with wrong token"""
     app.VERIFY_TOKEN = "wrong_token"
 
-    response = app.handler(api_gateway_get_event, None)
+    response = app.lambda_handler(api_gateway_get_event, None)
 
     assert response["statusCode"] == 403
     assert response["body"] == "Forbidden"
@@ -87,8 +87,8 @@ async def test_process_whatsapp_message(mock_ai, mock_send, sqs_sns_event):
     mock_ai.return_value = "AI Response"
     mock_send.return_value = {"status": "sent"}
 
-    # Run the handler
-    response = app.handler(sqs_sns_event, None)
+    # Run the lambda_handler
+    response = app.lambda_handler(sqs_sns_event, None)
 
     assert response["statusCode"] == 200
     mock_ai.assert_called_once_with("Hello AI!")
