@@ -23,6 +23,7 @@ VERIFY_TOKEN = get_secret("verify_token")
 WHATSAPP_TOKEN = get_secret("whatsapp_token")
 PHONE_NUMBER_ID = get_secret("phone_number_id")
 GEMINI_API_KEY = get_secret("llm_api_key")
+GEMINI_API_KEY = GEMINI_API_KEY.strip()
 genai.configure(api_key=GEMINI_API_KEY)
 
 # --- 2. Logic Functions ---
