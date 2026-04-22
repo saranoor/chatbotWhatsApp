@@ -22,8 +22,25 @@ def get_secret(name):
 VERIFY_TOKEN = get_secret("verify_token")
 WHATSAPP_TOKEN = get_secret("whatsapp_token")
 PHONE_NUMBER_ID = get_secret("phone_number_id")
-GEMINI_API_KEY = get_secret("llm_api_key")
-GEMINI_API_KEY = GEMINI_API_KEY.get("llm_api_key") if GEMINI_API_KEY else "dummy_key"
+
+# 1. Fetch the secret
+raw_secret = get_secret("llm_api_key")
+
+# 2. Check if it's a string (JSON) and convert to dict if needed
+if isinstance(raw_secret, str):
+    try:
+        raw_secret = json.loads(raw_secret)
+    except json.JSONDecodeError:
+        GEMINI_API_KEY = raw_secret
+        raw_secret = None
+
+# 3. Safely extract the key
+if isinstance(raw_secret, dict):
+    GEMINI_API_KEY = raw_secret.get("llm_api_key", "dummy_key")
+else:
+    # If GEMINI_API_KEY wasn't set in the string check above
+    GEMINI_API_KEY = raw_secret if raw_secret else "dummy_key"
+
 genai.configure(api_key=GEMINI_API_KEY)
 
 # --- 2. Logic Functions ---
