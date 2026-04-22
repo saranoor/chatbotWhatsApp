@@ -2,8 +2,10 @@ import json
 import boto3
 import httpx
 import asyncio
+import google.generativeai as genai
+import os
 
-# --- 1. Initialization (Outside the handler for performance) ---
+# --- 1. Initialization (Outside the lambda_handler for performance) ---
 secrets = boto3.client("secretsmanager")
 
 
@@ -20,14 +22,28 @@ def get_secret(name):
 VERIFY_TOKEN = get_secret("verify_token")
 WHATSAPP_TOKEN = get_secret("whatsapp_token")
 PHONE_NUMBER_ID = get_secret("phone_number_id")
+GEMINI_API_KEY = get_secret("llm_api_key")
+genai.configure(api_key=GEMINI_API_KEY)
 
 # --- 2. Logic Functions ---
 
 
 async def get_ai_answer(user_input):
-    """Your AI model logic"""
-    print(f"AI Thinking about: {user_input}")
-    return f"AI Response to: {user_input}"
+    """Gemini AI model logic"""
+    try:
+        print(f"AI Thinking about: {user_input}")
+
+        # Initialize Gemini model
+        model = genai.GenerativeModel("gemini-3-flash-preview")
+
+        # Generate response
+        response = model.generate_content(user_input)
+
+        return response.text
+
+    except Exception as e:
+        print(f"Gemini API error: {e}")
+        return f"Sorry, I couldn't process your request at the moment."
 
 
 async def send_whatsapp_message(to, text):
