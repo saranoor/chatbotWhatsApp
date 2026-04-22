@@ -31,6 +31,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 async def get_ai_answer(user_input):
     """Gemini AI model logic"""
     try:
+        print(f"GEMINI API KEY: {GEMINI_API_KEY}")
         print(f"AI Thinking about: {user_input}")
 
         # Initialize Gemini model
@@ -43,7 +44,7 @@ async def get_ai_answer(user_input):
 
     except Exception as e:
         print(f"Gemini API error: {e}")
-        return f"Sorry, I couldn't process your request at the moment."
+        return f"Sorry, I couldn't process your request at the moment. I will get back to you as soon as possible."
 
 
 async def send_whatsapp_message(to, text):
