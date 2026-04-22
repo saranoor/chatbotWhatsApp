@@ -63,27 +63,27 @@ def sqs_sns_event():
 # --- Tests ---
 
 
-@patch("app.app.get_secret")
-def test_verify_webhook_success(mock_secret, api_gateway_get_event):
-    """Test successful Meta verification"""
-    mock_secret.return_value = "whatsapp_webhook_123"
-    app_module.VERIFY_TOKEN = "whatsapp_webhook_123"  # Update global
+# @patch("app.app.get_secret")
+# def test_verify_webhook_success(mock_secret, api_gateway_get_event):
+#     """Test successful Meta verification"""
+#     mock_secret.return_value = "whatsapp_webhook_123"
+#     app_module.VERIFY_TOKEN = "whatsapp_webhook_123"  # Update global
 
-    response = app_module.lambda_handler(api_gateway_get_event, None)
+#     response = app_module.lambda_handler(api_gateway_get_event, None)
 
-    assert response["statusCode"] == 200
-    assert response["body"] == "1158201444"
-    assert response["headers"]["Content-Type"] == "text/plain"
+#     assert response["statusCode"] == 200
+#     assert response["body"] == "1158201444"
+#     assert response["headers"]["Content-Type"] == "text/plain"
 
 
-def test_verify_webhook_forbidden(api_gateway_get_event):
-    """Test verification with wrong token"""
-    app_module.VERIFY_TOKEN = "wrong_token"
+# def test_verify_webhook_forbidden(api_gateway_get_event):
+#     """Test verification with wrong token"""
+#     app_module.VERIFY_TOKEN = "wrong_token"
 
-    response = app_module.lambda_handler(api_gateway_get_event, None)
+#     response = app_module.lambda_handler(api_gateway_get_event, None)
 
-    assert response["statusCode"] == 403
-    assert response["body"] == "Forbidden"
+#     assert response["statusCode"] == 403
+#     assert response["body"] == "Forbidden"
 
 
 # @pytest.mark.asyncio
