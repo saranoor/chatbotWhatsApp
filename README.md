@@ -8,6 +8,7 @@ The proposed solution is to use whatsapp META Developer API to interact with use
 Utilized an AI model with guardrails to answer customer/user questions.
 
 ## Architectural Diagram
+![Alt text](images/architectural-diagram.png)
 
 ## DEMO 
 
