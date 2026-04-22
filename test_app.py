@@ -1,18 +1,26 @@
 import json
 import pytest
-from unittest.mock import AsyncMock, patch
-from unittest.mock import patch, MagicMock
 import os
+from unittest.mock import patch, MagicMock
 
-# 1. Set dummy environment variables BEFORE importing app
+# 1. Set dummy environment variables
 os.environ["AWS_ACCESS_KEY_ID"] = "testing"
 os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
-os.environ["AWS_SECURITY_TOKEN"] = "testing"
-os.environ["AWS_SESSION_TOKEN"] = "testing"
 os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 
-from app import app as app_module  # Assuming your file is named app.py
+# 2. MOCK the secret fetcher BEFORE importing the app
+# This prevents app.py from actually trying to talk to AWS during the import process
+with patch("app.app.get_secret") as mock_initial_secret:
+    # Configure the mock to return a dictionary so .get("llm_api_key") doesn't crash
+    mock_initial_secret.return_value = {
+        "llm_api_key": "dummy_gemini_key",
+        "verify_token": "whatsapp_webhook_123",
+        "whatsapp_token": "dummy_wa_token",
+        "phone_number_id": "dummy_id",
+    }
 
+    # NOW import the app
+    from app import app as app_module
 # ... rest of your tests
 # --- Mock Data ---
 
