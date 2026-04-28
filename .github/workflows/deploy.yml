@@ -63,7 +63,7 @@ jobs:
         pip install aws-cdk-lib constructs
         cd cdk
         cdk bootstrap  # <--- Add this line here
-        cdk deploy --require-approval never
+        cdk deploy --all --require-approval never
 
     - name: Update Lambda Function Code
       env:
@@ -83,7 +83,7 @@ jobs:
           --output text)
         
         # Package and deploy
-        cd app/ingestion
+        cd ingestion
         pip install -r requirements.txt -t package/
         cp main.py package/
         cd package && zip -r ../function.zip . && cd ..
