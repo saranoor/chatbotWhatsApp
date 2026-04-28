@@ -8,6 +8,7 @@ from aws_cdk import (
     RemovalPolicy,
 )
 from constructs import Construct
+import os
 
 
 class IngestionStack(Stack):
@@ -17,13 +18,16 @@ class IngestionStack(Stack):
         # S3 bucket
         bucket = s3.Bucket(self, "DocumentsBucket", removal_policy=RemovalPolicy.RETAIN)
 
+        dirname = os.path.dirname(__file__)
         # Lambda
         processor = lambda_.Function(
             self,
             "Processor",
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="main.lambda_handler",
-            code=lambda_.Code.from_asset("ingestion"),
+            code=lambda_.Code.from_asset(
+                os.path.join(dirname, "..", "app", "ingestion")
+            ),
             timeout=Duration.minutes(15),
             memory_size=1024,
             environment={
