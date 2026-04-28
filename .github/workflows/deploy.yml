@@ -82,8 +82,9 @@ jobs:
           --query "Stacks[0].Outputs[?contains(OutputKey, 'FunctionName')].OutputValue" \
           --output text)
         
+        echo "Deploying to function: $INGESTION_FUNCTION"
         # Package and deploy
-        cd ingestion
+        cd app/ingestion
         pip install -r requirements.txt -t package/
         cp main.py package/
         cd package && zip -r ../function.zip . && cd ..
