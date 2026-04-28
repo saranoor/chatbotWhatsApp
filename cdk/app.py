@@ -1,7 +1,7 @@
 import aws_cdk as cdk
 from cdk_stack import WhatsappBotStack
-from stacks.storage_stack import StorageStack
-from stacks.ingestion_stack import IngestionStack
+from storage_stack import StorageStack
+from ingestion_stack import IngestionStack
 
 app = cdk.App()
 
