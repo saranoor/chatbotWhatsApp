@@ -51,7 +51,7 @@ Follow these steps to deploy and run the project in a cloud environment:
 ### Local Setup
 
 Follow these steps to run the project on your local machine:
-    ## TODO: update later
+#TODO: update later
 
 ## Challenges:
     # TOD0: add technical challenges

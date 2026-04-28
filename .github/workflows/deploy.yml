@@ -74,3 +74,21 @@ jobs:
           --function-name $LAMBDA_FUNCTION_NAME \
           --image-uri $IMAGE_URI
 
+    - name: Update Ingestion Lambda (ZIP)
+      run: |
+        # Get function name from stack
+        INGESTION_FUNCTION=$(aws cloudformation describe-stacks \
+          --stack-name WhatsAppRAGIngestion \
+          --query "Stacks[0].Outputs[?contains(OutputKey, 'FunctionName')].OutputValue" \
+          --output text)
+        
+        # Package and deploy
+        cd app/ingestion
+        pip install -r requirements.txt -t package/
+        cp main.py package/
+        cd package && zip -r ../function.zip . && cd ..
+        
+        aws lambda update-function-code \
+          --function-name $INGESTION_FUNCTION \
+          --zip-file fileb://function.zip
+
