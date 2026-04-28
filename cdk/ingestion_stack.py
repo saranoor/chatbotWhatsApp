@@ -23,7 +23,7 @@ class IngestionStack(Stack):
             "Processor",
             runtime=lambda_.Runtime.PYTHON_3_11,
             handler="main.lambda_handler",
-            code=lambda_.Code.from_asset("app/ingestion"),
+            code=lambda_.Code.from_asset("ingestion"),
             timeout=Duration.minutes(15),
             memory_size=1024,
             environment={
