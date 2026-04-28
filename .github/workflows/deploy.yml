@@ -79,9 +79,8 @@ jobs:
         # Get function name from stack
         INGESTION_FUNCTION=$(aws cloudformation describe-stacks \
           --stack-name RAGIngestion \
-          --query "Stacks[0].Outputs[?contains(OutputKey, 'FunctionName')].OutputValue" \
+          --query "Stacks[0].Outputs[?OutputKey=='IngestionFunctionName'].OutputValue" \
           --output text)
-        
         echo "Deploying to function: $INGESTION_FUNCTION"
         # Package and deploy
         cd app/ingestion

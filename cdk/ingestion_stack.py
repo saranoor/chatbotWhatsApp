@@ -9,6 +9,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 import os
+from aws_cdk import CfnOutput
 
 
 class IngestionStack(Stack):
@@ -51,3 +52,10 @@ class IngestionStack(Stack):
         )
 
         self.bucket = bucket
+
+        CfnOutput(
+            self,
+            "IngestionFunctionName",
+            value=processor.function_name,
+            export_name="IngestionFunctionName",
+        )
