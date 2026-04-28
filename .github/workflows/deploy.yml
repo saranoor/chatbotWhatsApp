@@ -78,7 +78,7 @@ jobs:
       run: |
         # Get function name from stack
         INGESTION_FUNCTION=$(aws cloudformation describe-stacks \
-          --stack-name WhatsAppRAGIngestion \
+          --stack-name RAGIngestion \
           --query "Stacks[0].Outputs[?contains(OutputKey, 'FunctionName')].OutputValue" \
           --output text)
         
