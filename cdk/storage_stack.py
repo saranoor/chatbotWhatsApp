@@ -11,7 +11,7 @@ class StorageStack(Stack):
         self.opensearch_domain = opensearch.Domain(
             self,
             "OpenSearchDomain",
-            domain_name="kb-chatbot-data-prod",
+            # domain_name="kb-chatbot-data-prod",
             version=opensearch.EngineVersion.OPENSEARCH_2_11,
             capacity=opensearch.CapacityConfig(
                 data_node_instance_type="t3.small.search", data_nodes=1
