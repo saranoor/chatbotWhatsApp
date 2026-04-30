@@ -11,7 +11,7 @@ from datetime import datetime
 
 # AWS Clients
 s3 = boto3.client("s3")
-bedrock = boto3.client("bedrock-runtime")
+bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
 # OpenSearch client
 from opensearchpy import OpenSearch, RequestsHttpConnection
@@ -144,8 +144,17 @@ def chunk_text(text):
 
 def generate_embedding(text):
     """Generate embedding using Bedrock"""
+
+    print("Region:", bedrock.meta.region_name)
+
+    response = bedrock.list_foundation_models()
+
+    for model in response["modelSummaries"]:
+        if "embed" in model["modelId"].lower():
+            print(model["modelId"], "-", model["modelLifecycle"]["status"])
+
     response = bedrock.invoke_model(
-        modelId="amazon.titan-embed-text-v1", body=json.dumps({"inputText": text})
+        modelId="amazon.titan-embed-text-v2:0", body=json.dumps({"inputText": text})
     )
 
     response_body = json.loads(response["body"].read())
