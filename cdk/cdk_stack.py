@@ -63,6 +63,10 @@ class WhatsappBotStack(Stack):
             )
             sec.grant_read(handler)
 
+        handler.add_to_role_policy(
+            iam.PolicyStatement(actions=["bedrock:InvokeModel"], resources=["*"])
+        )
+
         # 5. SQS Event Source
         handler.add_event_source(events.SqsEventSource(queue))
 
