@@ -9,6 +9,8 @@ import boto3
 from io import BytesIO
 from datetime import datetime
 
+from google import genai
+
 # AWS Clients
 s3 = boto3.client("s3")
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
@@ -142,37 +144,113 @@ def chunk_text(text):
     return chunks
 
 
+# --- 1. Initialization (Outside the lambda_handler for performance) ---
+secrets = boto3.client("secretsmanager")
+
+
+def get_secret(name):
+    try:
+        response = secrets.get_secret_value(SecretId=name)
+        return response["SecretString"]
+    except Exception as e:
+        print(f"Error fetching secret {name}: {e}")
+        return None
+
+
 def generate_embedding(text):
-    """Generate embedding using Bedrock"""
+    """Generate embedding using Google Gemini"""
+    try:
+        import json
 
-    print("Region:", bedrock.meta.region_name)
+        GOOGLE_API_KEY = get_secret("llm_api_key")
+        GOOGLE_API_KEY = json.loads(GOOGLE_API_KEY) if GOOGLE_API_KEY else {}
+        GOOGLE_API_KEY = (
+            GOOGLE_API_KEY.get("llm_api_key") if GOOGLE_API_KEY else "dummy_key"
+        )
+        print("GOOGLE_API_KEY:", GOOGLE_API_KEY)  # Debug print to check the key
+        genai.configure(api_key=GOOGLE_API_KEY)
+        # Using text-embedding-004 (latest stable model)
+        result = genai.embed_content(
+            model="models/gemini-embedding-2",
+            content=text,
+            task_type="retrieval_document",
+            title="S3 Document Chunk",  # Optional: helpful for retrieval_document tasks
+        )
 
-    response = bedrock.list_foundation_models()
+        return result["embedding"]
+    except Exception as e:
+        print(f"Gemini Embedding Error: {e}")
+        raise
 
-    for model in response["modelSummaries"]:
-        if "embed" in model["modelId"].lower():
-            print(model["modelId"], "-", model["modelLifecycle"]["status"])
 
-    response = bedrock.invoke_model(
-        modelId="amazon.titan-embed-text-v2:0", body=json.dumps({"inputText": text})
-    )
+# def generate_embedding(text):
+#     """Generate embedding using Bedrock"""
 
-    response_body = json.loads(response["body"].read())
-    return response_body["embedding"]
+#     print("Region:", bedrock.meta.region_name)
+
+#     response = bedrock.list_foundation_models()
+
+#     for model in response["modelSummaries"]:
+#         if "embed" in model["modelId"].lower():
+#             print(model["modelId"], "-", model["modelLifecycle"]["status"])
+
+#     response = bedrock.invoke_model(
+#         modelId="amazon.titan-embed-text-v2:0", body=json.dumps({"inputText": text})
+#     )
+
+#     response_body = json.loads(response["body"].read())
+#     return response_body["embedding"]
+
+
+# def index_chunks(chunks, bucket, key):
+#     """Generate embeddings and index to OpenSearch"""
+#     from opensearchpy import helpers
+
+#     # Prepare bulk actions
+#     actions = []
+
+#     for i, chunk in enumerate(chunks):
+#         # Generate embedding
+#         embedding = generate_embedding(chunk)
+
+#         # Prepare document
+#         doc = {
+#             "_index": OPENSEARCH_INDEX,
+#             "_source": {
+#                 "content": chunk,
+#                 "embedding_vector": embedding,
+#                 "metadata": {
+#                     "source_file": key,
+#                     "bucket": bucket,
+#                     "chunk_index": i,
+#                     "total_chunks": len(chunks),
+#                     "upload_date": datetime.utcnow().isoformat(),
+#                     "file_type": key.split(".")[-1],
+#                 },
+#             },
+#         }
+#         actions.append(doc)
+
+#     # Bulk index
+#     helpers.bulk(opensearch, actions)
 
 
 def index_chunks(chunks, bucket, key):
-    """Generate embeddings and index to OpenSearch"""
+    """Batch generate embeddings and index to OpenSearch"""
     from opensearchpy import helpers
 
-    # Prepare bulk actions
+    # 1. Batch generate all embeddings at once
+    # This is significantly faster than calling the API for each chunk
+    result = genai.embed_content(
+        model="models/text-embedding-004",
+        content=chunks,
+        task_type="retrieval_document",
+    )
+    embeddings = result["embedding"]
+
+    # 2. Prepare bulk actions for OpenSearch
     actions = []
-
-    for i, chunk in enumerate(chunks):
-        # Generate embedding
-        embedding = generate_embedding(chunk)
-
-        # Prepare document
+    for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         doc = {
             "_index": OPENSEARCH_INDEX,
             "_source": {
@@ -190,5 +268,4 @@ def index_chunks(chunks, bucket, key):
         }
         actions.append(doc)
 
-    # Bulk index
     helpers.bulk(opensearch, actions)
