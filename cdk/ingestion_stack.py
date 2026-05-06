@@ -67,6 +67,6 @@ class IngestionStack(Stack):
         CfnOutput(
             self,
             "DocumentsBucketName",
-            value=bucket.bucket_name,
+            value=deploy_bucket.bucket_name,
             export_name="DocumentsBucketName",
         )
