@@ -83,7 +83,7 @@ jobs:
           --output text)
         DEPLOY_BUCKET=$(aws cloudformation describe-stacks \
           --stack-name RAGIngestion \
-          --query "Stacks[0].Outputs[?OutputKey=='DeployBucketName'].OutputValue" \
+          --query "Stacks[0].Outputs[?OutputKey=='DocumentsBucketName'].OutputValue" \
           --output text)
 
         echo "Target Function: $INGESTION_FUNCTION"
