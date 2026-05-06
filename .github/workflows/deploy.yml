@@ -76,19 +76,35 @@ jobs:
 
     - name: Update Ingestion Lambda (ZIP)
       run: |
-        # Get function name from stack
+        # 1. Get function name from stack
         INGESTION_FUNCTION=$(aws cloudformation describe-stacks \
           --stack-name RAGIngestion \
           --query "Stacks[0].Outputs[?OutputKey=='IngestionFunctionName'].OutputValue" \
           --output text)
-        echo "Deploying to function: $INGESTION_FUNCTION"
-        # Package and deploy
+        DEPLOY_BUCKET=$(aws cloudformation describe-stacks \
+          --stack-name RAGIngestion \
+          --query "Stacks[0].Outputs[?OutputKey=='DeployBucketName'].OutputValue" \
+          --output text)
+
+        echo "Target Function: $INGESTION_FUNCTION"
+        echo "Target Bucket: $DEPLOY_BUCKET"
+        
         cd app/ingestion
         pip install -r requirements.txt -t package/
         cp main.py package/
         cd package && zip -r ../function.zip . && cd ..
+
+        # 3. Upload the ZIP to S3
+        # Using a timestamp or GITHUB_SHA ensures the file name is unique
+        S3_KEY="ingestion-deployments/${{ github.sha }}.zip"
+        
+        aws s3 cp function.zip s3://$DEPLOY_BUCKET/$S3_KEY
+
+        # 4. Update Lambda using the S3 reference
+        echo "Deploying to function: $INGESTION_FUNCTION from s3://$DEPLOY_BUCKET/$S3_KEY"
         
         aws lambda update-function-code \
           --function-name $INGESTION_FUNCTION \
-          --zip-file fileb://function.zip
+          --s3-bucket $DEPLOY_BUCKET \
+          --s3-key $S3_KEY
 

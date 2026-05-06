@@ -18,7 +18,12 @@ class IngestionStack(Stack):
 
         # S3 bucket
         bucket = s3.Bucket(self, "DocumentsBucket", removal_policy=RemovalPolicy.RETAIN)
-
+        deploy_bucket = s3.Bucket(
+            self,
+            "LambdaDeployBucket",
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+        )
         dirname = os.path.dirname(__file__)
         # Lambda
         processor = lambda_.Function(
@@ -58,4 +63,10 @@ class IngestionStack(Stack):
             "IngestionFunctionName",
             value=processor.function_name,
             export_name="IngestionFunctionName",
+        )
+        CfnOutput(
+            self,
+            "DocumentsBucketName",
+            value=bucket.bucket_name,
+            export_name="DocumentsBucketName",
         )
