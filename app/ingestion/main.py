@@ -59,7 +59,13 @@ def get_secret(name):
 
 
 GOOGLE_API_KEY = get_secret("llm_api_key")
+print(
+    "GOOGLE_API_KEY fetched successfully: {}".format(GOOGLE_API_KEY)
+)  # Debug print to confirm fetching
 GOOGLE_API_KEY = json.loads(GOOGLE_API_KEY) if GOOGLE_API_KEY else {}
+print(
+    "GOOGLE_API_KEY after JSON parsing: {}".format(GOOGLE_API_KEY)
+)  # Debug print to confirm parsing
 GOOGLE_API_KEY = GOOGLE_API_KEY.get("llm_api_key") if GOOGLE_API_KEY else "dummy_key"
 print("GOOGLE_API_KEY:", GOOGLE_API_KEY)  # Debug print to check the key
 genai.configure(api_key=GOOGLE_API_KEY)
