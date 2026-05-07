@@ -60,6 +60,18 @@ class IngestionStack(Stack):
             iam.PolicyStatement(actions=["bedrock:InvokeModel"], resources=["*"])
         )
 
+        processor.add_to_role_policy(
+            iam.PolicyStatement(
+                actions=[
+                    "es:ESHttpPost",
+                    "es:ESHttpPut",
+                    "es:ESHttpGet",
+                    "es:ESHttpDelete",
+                ],
+                resources=[f"{opensearch_domain.domain_arn}/*"],
+            )
+        )
+
         # S3 Trigger
         bucket.add_event_notification(
             s3.EventType.OBJECT_CREATED, s3n.LambdaDestination(processor)
