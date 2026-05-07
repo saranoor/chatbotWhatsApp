@@ -45,6 +45,25 @@ opensearch = OpenSearch(
     connection_class=RequestsHttpConnection,
 )
 
+# --- 1. Initialization (Outside the lambda_handler for performance) ---
+secrets = boto3.client("secretsmanager")
+
+
+def get_secret(name):
+    try:
+        response = secrets.get_secret_value(SecretId=name)
+        return response["SecretString"]
+    except Exception as e:
+        print(f"Error fetching secret {name}: {e}")
+        return None
+
+
+GOOGLE_API_KEY = get_secret("llm_api_key")
+GOOGLE_API_KEY = json.loads(GOOGLE_API_KEY) if GOOGLE_API_KEY else {}
+GOOGLE_API_KEY = GOOGLE_API_KEY.get("llm_api_key") if GOOGLE_API_KEY else "dummy_key"
+print("GOOGLE_API_KEY:", GOOGLE_API_KEY)  # Debug print to check the key
+genai.configure(api_key=GOOGLE_API_KEY)
+
 
 def lambda_handler(event, context):
     """Main Lambda handler"""
@@ -145,31 +164,11 @@ def chunk_text(text):
     return chunks
 
 
-# --- 1. Initialization (Outside the lambda_handler for performance) ---
-secrets = boto3.client("secretsmanager")
-
-
-def get_secret(name):
-    try:
-        response = secrets.get_secret_value(SecretId=name)
-        return response["SecretString"]
-    except Exception as e:
-        print(f"Error fetching secret {name}: {e}")
-        return None
-
-
 def generate_embedding(text):
     """Generate embedding using Google Gemini"""
     try:
         import json
 
-        GOOGLE_API_KEY = get_secret("llm_api_key")
-        GOOGLE_API_KEY = json.loads(GOOGLE_API_KEY) if GOOGLE_API_KEY else {}
-        GOOGLE_API_KEY = (
-            GOOGLE_API_KEY.get("llm_api_key") if GOOGLE_API_KEY else "dummy_key"
-        )
-        print("GOOGLE_API_KEY:", GOOGLE_API_KEY)  # Debug print to check the key
-        genai.configure(api_key=GOOGLE_API_KEY)
         # Using text-embedding-004 (latest stable model)
         result = genai.embed_content(
             model="models/gemini-embedding-2",
@@ -243,7 +242,8 @@ def index_chunks(chunks, bucket, key):
     # 1. Batch generate all embeddings at once
     # This is significantly faster than calling the API for each chunk
     result = genai.embed_content(
-        model="models/text-embedding-004",
+        # model="models/text-embedding-004",
+        model="models/gemini-embedding-2",
         content=chunks,
         task_type="retrieval_document",
     )
