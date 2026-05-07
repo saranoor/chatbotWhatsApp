@@ -81,6 +81,7 @@ jobs:
           --stack-name RAGIngestion \
           --query "Stacks[0].Outputs[?OutputKey=='IngestionFunctionName'].OutputValue" \
           --output text)
+
         DEPLOY_BUCKET=$(aws cloudformation describe-stacks \
           --stack-name RAGIngestion \
           --query "Stacks[0].Outputs[?OutputKey=='DocumentsBucketName'].OutputValue" \
@@ -88,11 +89,12 @@ jobs:
 
         echo "Target Function: $INGESTION_FUNCTION"
         echo "Target Bucket: $DEPLOY_BUCKET"
-        
+
         cd app/ingestion
 
         rm -rf package function.zip
-        
+        mkdir -p package
+
         docker run --rm \
           --user $(id -u):$(id -g) \
           --entrypoint /bin/bash \
@@ -106,7 +108,14 @@ jobs:
         zip -r ../function.zip .
         cd ..
 
+        # Define S3 object key
+        S3_KEY="ingestion-deployments/$GITHUB_SHA.zip"
+
+        echo "Uploading ZIP to s3://$DEPLOY_BUCKET/$S3_KEY"
+
         aws s3 cp function.zip s3://$DEPLOY_BUCKET/$S3_KEY
+
+        echo "Updating Lambda function..."
 
         aws lambda update-function-code \
           --function-name $INGESTION_FUNCTION \
