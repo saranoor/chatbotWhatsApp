@@ -1,3 +1,5 @@
+from platform import processor
+
 from aws_cdk import (
     Stack,
     aws_s3 as s3,
@@ -10,6 +12,7 @@ from aws_cdk import (
 from constructs import Construct
 import os
 from aws_cdk import CfnOutput
+from aws_cdk import aws_secretsmanager as secretsmanager
 
 
 class IngestionStack(Stack):
@@ -43,6 +46,12 @@ class IngestionStack(Stack):
                 "CHUNK_OVERLAP": "50",
             },
         )
+
+        secret = secretsmanager.Secret.from_secret_name_v2(
+            self, "LLMSecret", "llm_api_key"
+        )
+
+        secret.grant_read(processor)
 
         # Permissions
         bucket.grant_read(processor)
