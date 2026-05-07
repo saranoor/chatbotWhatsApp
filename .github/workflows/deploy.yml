@@ -92,8 +92,9 @@ jobs:
         cd app/ingestion
 
         rm -rf package function.zip
-
+        
         docker run --rm \
+          --user $(id -u):$(id -g) \
           --entrypoint /bin/bash \
           -v "$PWD":/var/task \
           public.ecr.aws/lambda/python:3.11 \
