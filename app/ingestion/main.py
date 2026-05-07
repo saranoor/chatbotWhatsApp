@@ -9,7 +9,8 @@ import boto3
 from io import BytesIO
 from datetime import datetime
 
-from google import genai
+# from google import genai
+import google.generativeai as genai
 
 # AWS Clients
 s3 = boto3.client("s3")
