@@ -118,7 +118,7 @@ async def get_ai_answer(user_input):
             {user_input}"""
 
         model = genai.GenerativeModel(
-            "gemini-2.5-flash", system_instruction=TRAVEL_BOT_INSTRUCTIONS
+            "gemini-2.5-flash", system_instruction=f"TRAVEL_BOT_INSTRUCTIONS"
         )
         response = model.generate_content(grounded_prompt)
         return response.text
