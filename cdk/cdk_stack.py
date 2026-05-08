@@ -72,8 +72,8 @@ class WhatsappBotStack(Stack):
             self,
             "ImportedOSDomain",
             # domain_arn=f"arn:aws:es:{self.region}:{self.accountself.account}:domain/your-domain-name",
-            domain_arn= "arn:aws:es:us-east-1:357457231130:domain/kb-chatbot-data-prod"
-            domain_endpoint="search-kb-chatbot-data-prod-iy4b3lqcr4tt4izdrixxspwyj4.us-east-1.es.amazonaws.com",
+            domain_arn= "arn:aws:es:us-east-1:357457231130:domain/opensearchdomai-0xjhd8to9bbg"
+            domain_endpoint="search-opensearchdomai-0xjhd8to9bbg-l6fuyuxgycn47wskwik27wcyiu.us-east-1.es.amazonaws.com",
         )
 
         # 2. Grant Permissions
