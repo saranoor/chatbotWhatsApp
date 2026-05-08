@@ -241,21 +241,47 @@ def generate_embedding(text):
 #     helpers.bulk(opensearch, actions)
 
 
+def ensure_index_exists():
+    """Create index with knn_vector mapping if it doesn't exist"""
+    if not opensearch.indices.exists(index=OPENSEARCH_INDEX):
+        opensearch.indices.create(
+            index=OPENSEARCH_INDEX,
+            body={
+                "settings": {"index": {"knn": True, "knn.algo_param.ef_search": 100}},
+                "mappings": {
+                    "properties": {
+                        "content": {"type": "text"},
+                        "embedding_vector": {
+                            "type": "knn_vector",
+                            "dimension": 3072,  # gemini-embedding-2 dimension
+                            "method": {
+                                "name": "hnsw",
+                                "space_type": "cosinesimil",
+                                "engine": "nmslib",
+                                "parameters": {"ef_construction": 128, "m": 16},
+                            },
+                        },
+                        "metadata": {"type": "object"},
+                    }
+                },
+            },
+        )
+        print(f"Created index: {OPENSEARCH_INDEX}")
+
+
 def index_chunks(chunks, bucket, key):
     """Batch generate embeddings and index to OpenSearch"""
     from opensearchpy import helpers
 
-    # 1. Batch generate all embeddings at once
-    # This is significantly faster than calling the API for each chunk
+    ensure_index_exists()  # 👈 creates index with knn_vector if not exists
+
     result = genai.embed_content(
-        # model="models/text-embedding-004",
         model="models/gemini-embedding-2",
         content=chunks,
         task_type="retrieval_document",
     )
     embeddings = result["embedding"]
 
-    # 2. Prepare bulk actions for OpenSearch
     actions = []
     for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
         doc = {
