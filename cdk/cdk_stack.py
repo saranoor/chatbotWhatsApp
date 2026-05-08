@@ -13,6 +13,7 @@ from aws_cdk import (
 )
 from constructs import Construct
 import os
+from aws_cdk import aws_opensearchservice as opensearch
 
 
 class WhatsappBotStack(Stack):
@@ -66,6 +67,17 @@ class WhatsappBotStack(Stack):
         handler.add_to_role_policy(
             iam.PolicyStatement(actions=["bedrock:InvokeModel"], resources=["*"])
         )
+
+        os_domain = opensearch.Domain.from_domain_attributes(
+            self,
+            "ImportedOSDomain",
+            # domain_arn=f"arn:aws:es:{self.region}:{self.accountself.account}:domain/your-domain-name",
+            domain_arn= "arn:aws:es:us-east-1:357457231130:domain/kb-chatbot-data-prod"
+            domain_endpoint="search-kb-chatbot-data-prod-iy4b3lqcr4tt4izdrixxspwyj4.us-east-1.es.amazonaws.com",
+        )
+
+        # 2. Grant Permissions
+        os_domain.grant_read_write(handler)
 
         # 5. SQS Event Source
         handler.add_event_source(events.SqsEventSource(queue))
