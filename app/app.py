@@ -43,6 +43,30 @@ else:
 
 genai.configure(api_key=GEMINI_API_KEY)
 
+from opensearchpy import OpenSearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
+
+OPENSEARCH_ENDPOINT = os.environ["OPENSEARCH_ENDPOINT"]
+OPENSEARCH_INDEX = os.environ.get("OPENSEARCH_INDEX", "documents")
+CHUNK_SIZE = int(os.environ.get("CHUNK_SIZE", "500"))
+CHUNK_OVERLAP = int(os.environ.get("CHUNK_OVERLAP", "50"))
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+
+credentials = boto3.Session().get_credentials()
+awsauth = AWS4Auth(
+    credentials.access_key,
+    credentials.secret_key,
+    AWS_REGION,
+    "es",
+    session_token=credentials.token,
+)
+opensearch = OpenSearch(
+    hosts=[{"host": OPENSEARCH_ENDPOINT, "port": 443}],
+    http_auth=awsauth,
+    use_ssl=True,
+    verify_certs=True,
+    connection_class=RequestsHttpConnection,
+)
 # --- 2. Logic Functions ---
 
 
