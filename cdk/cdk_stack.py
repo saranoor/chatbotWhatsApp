@@ -79,6 +79,20 @@ class WhatsappBotStack(Stack):
         # 2. Grant Permissions
         os_domain.grant_read_write(handler)
 
+        handler.add_to_role_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                actions=[
+                    "es:ESHttpGet",
+                    "es:ESHttpPost",
+                    "es:ESHttpPut",
+                    "es:ESHttpDelete",
+                    "es:ESHttpHead",
+                ],
+                resources=[f"{os_domain.domain_arn}/*"],
+            )
+        )
+
         # 5. SQS Event Source
         handler.add_event_source(events.SqsEventSource(queue))
 
