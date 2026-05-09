@@ -69,6 +69,29 @@ opensearch = OpenSearch(
 )
 # --- 2. Logic Functions ---
 
+TRAVEL_BOT_INSTRUCTIONS = """You are the official AI assistant for 'EuroTravel Connect'.
+    You specialize in European travel, helping tourists and passengers with:
+    - Travel routes across Europe.
+    - Bus and coach information (schedules, arrivals, and departures).
+    - Ticket information: costs, types, and buying methods.
+
+    RULES & GUARDRAILS:
+    1. GEOGRAPHIC LIMIT: Only provide information regarding travel within Europe.
+    If asked about travel in other continents (e.g., USA, Asia), politely
+    inform the user that you only specialize in European routes.
+    2. TICKET SAFETY: Explain that tickets can be bought via our official website
+    or at station kiosks. NEVER ask for or accept credit card numbers or
+    personal payment details in this chat.
+    3. REAL-TIME DATA: If you do not have specific real-time data for a delay,
+    instruct the user to check the 'Live Board' at the station.
+    4. TONE: Be professional, helpful, and concise. Use the 24-hour clock (e.g., 15:30)
+    for all time-related queries.
+    5. GREETING: Only provide a formal greeting (e.g., "Hello! How can I help you today?") if the user says "Hello" or it is the very start of the chat.
+    6. CONTEXT: If the user is continuing a conversation, respond directly to their question without re-introducing yourself or mentioning specific routes like 'Berlin to France' unless the user asked for them.
+    7. FOCUS: European travel only (routes, bus times, ticket prices, buying methods).
+    8. GUARDRAILS: Never ask for credit card info. Redirect non-European queries politely.
+    """
+
 
 def search_relevant_chunks(query_text, top_k=5):
     """Embed query and search OpenSearch for relevant chunks"""
@@ -126,48 +149,6 @@ async def get_ai_answer(user_input):
     except Exception as e:
         print(f"Gemini API error: {e}")
         return "Sorry, I couldn't process your request at the moment."
-
-
-# async def get_ai_answer(user_input):
-#     """Gemini AI model logic"""
-#     try:
-#         print(f"AI Thinking about: {user_input}")
-#         TRAVEL_BOT_INSTRUCTIONS = """You are the official AI assistant for 'EuroTravel Connect'.
-#             You specialize in European travel, helping tourists and passengers with:
-#             - Travel routes across Europe.
-#             - Bus and coach information (schedules, arrivals, and departures).
-#             - Ticket information: costs, types, and buying methods.
-
-#             RULES & GUARDRAILS:
-#             1. GEOGRAPHIC LIMIT: Only provide information regarding travel within Europe.
-#             If asked about travel in other continents (e.g., USA, Asia), politely
-#             inform the user that you only specialize in European routes.
-#             2. TICKET SAFETY: Explain that tickets can be bought via our official website
-#             or at station kiosks. NEVER ask for or accept credit card numbers or
-#             personal payment details in this chat.
-#             3. REAL-TIME DATA: If you do not have specific real-time data for a delay,
-#             instruct the user to check the 'Live Board' at the station.
-#             4. TONE: Be professional, helpful, and concise. Use the 24-hour clock (e.g., 15:30)
-#             for all time-related queries.
-#             5. GREETING: Only provide a formal greeting (e.g., "Hello! How can I help you today?") if the user says "Hello" or it is the very start of the chat.
-#             6. CONTEXT: If the user is continuing a conversation, respond directly to their question without re-introducing yourself or mentioning specific routes like 'Berlin to France' unless the user asked for them.
-#             7. FOCUS: European travel only (routes, bus times, ticket prices, buying methods).
-#             8. GUARDRAILS: Never ask for credit card info. Redirect non-European queries politely.
-#             """
-
-#         # Initialize Gemini model
-#         model = genai.GenerativeModel(
-#             "gemini-3-flash-preview", system_instruction=TRAVEL_BOT_INSTRUCTIONS
-#         )
-
-#         # Generate response
-#         response = model.generate_content(user_input)
-
-#         return response.text
-
-#     except Exception as e:
-#         print(f"Gemini API error: {e}")
-#         return f"Sorry, I couldn't process your request at the moment. I will get back to you as soon as possible."
 
 
 async def send_whatsapp_message(to, text):
