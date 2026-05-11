@@ -4,6 +4,7 @@ import httpx
 import asyncio
 import google.generativeai as genai
 import os
+from memory import get_conversation_context, save_message, maybe_summarize
 
 # --- 1. Initialization (Outside the lambda_handler for performance) ---
 secrets = boto3.client("secretsmanager")
@@ -124,30 +125,76 @@ def search_relevant_chunks(query_text, top_k=5):
     return [hit["_source"]["content"] for hit in hits]
 
 
-async def get_ai_answer(user_input):
+# async def get_ai_answer(user_input):
+#     try:
+#         # 1. Retrieve relevant chunks
+#         chunks = search_relevant_chunks(user_input)
+#         context = "\n\n---\n\n".join(chunks)
+
+#         # 2. Build prompt with context
+#         grounded_prompt = f"""Use the following documents to answer the user's question.
+#             If the answer isn't in the documents, say you don't have that information.
+
+#             DOCUMENTS:
+#             {context}
+
+#             USER QUESTION:
+#             {user_input}"""
+
+#         model = genai.GenerativeModel(
+#             "gemini-2.5-flash", system_instruction=f"TRAVEL_BOT_INSTRUCTIONS"
+#         )
+#         response = model.generate_content(grounded_prompt)
+#         return response.text
+
+#     except Exception as e:
+#         print(f"Gemini API error: {e}")
+#         return "Sorry, I couldn't process your request at the moment."
+
+
+async def get_ai_answer(user_input: str, whatsapp_number: str):
     try:
         # 1. Retrieve relevant chunks
         chunks = search_relevant_chunks(user_input)
         context = "\n\n---\n\n".join(chunks)
 
-        # 2. Build prompt with context
+        # 2. Load memory
+        summary, raw_messages = get_conversation_context(whatsapp_number)
+
+        history_text = "\n".join(
+            f"{m['role'].upper()}: {m['content']}" for m in raw_messages[-20:]
+        )
+
+        # 3. Build prompt with context + memory
         grounded_prompt = f"""Use the following documents to answer the user's question.
             If the answer isn't in the documents, say you don't have that information.
 
             DOCUMENTS:
             {context}
 
+            CONVERSATION SUMMARY (older history):
+            {summary or 'None'}
+
+            RECENT MESSAGES:
+            {history_text}
+
             USER QUESTION:
             {user_input}"""
 
         model = genai.GenerativeModel(
-            "gemini-2.5-flash", system_instruction=f"TRAVEL_BOT_INSTRUCTIONS"
+            "gemini-2.5-flash", system_instruction="TRAVEL_BOT_INSTRUCTIONS"
         )
         response = model.generate_content(grounded_prompt)
-        return response.text
+        answer = response.text
 
+        # 4. Save new messages + maybe compress
+        save_message(whatsapp_number, "user", user_input)
+        save_message(whatsapp_number, "assistant", answer)
+        await maybe_summarize(whatsapp_number, raw_messages, summary, model)
+
+        return answer
     except Exception as e:
-        print(f"Gemini API error: {e}")
+        print(f"Error in get_ai_answer: {e}")
         return "Sorry, I couldn't process your request at the moment."
 
 
@@ -180,7 +227,7 @@ async def process_sqs_record(record):
             text = message["text"]["body"]
 
             # this aysnc only beneficial for multiple messages in the batch, not for a single message, but we keep it for future scalability
-            ai_response = await get_ai_answer(text)
+            ai_response = await get_ai_answer(text, sender_id)
             await send_whatsapp_message(sender_id, ai_response)
     except KeyError as e:
         print(f"Missing expected key in payload: {e}")
