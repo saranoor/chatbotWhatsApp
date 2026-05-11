@@ -10,6 +10,7 @@ from aws_cdk import (
     aws_iam as iam,
     aws_ecr as ecr,
     Duration,
+    aws_dynamodb as dynamodb,
 )
 from constructs import Construct
 import os
@@ -95,6 +96,13 @@ class WhatsappBotStack(Stack):
 
         # 5. SQS Event Source
         handler.add_event_source(events.SqsEventSource(queue))
+
+        from storage_cdk import StorageStack  # only if needed
+
+        storage_table = dynamodb.Table.from_table_name(
+            self, "ChatHistoryTable", "whatsapp-chat-history"
+        )
+        storage_table.grant_read_write_data(handler)
 
         # 6. API Gateway Setup
         api = apigw.RestApi(
