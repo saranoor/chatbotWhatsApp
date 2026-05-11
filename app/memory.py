@@ -1,8 +1,11 @@
 import boto3
 import time
 from datetime import datetime
+import os
 
-dynamodb = boto3.resource("dynamodb", region_name="your-region")
+AWS_REGION = os.environ.get("AWS_REGION", "us-east-1")
+
+dynamodb = boto3.resource("dynamodb", region_name=AWS_REGION)
 table = dynamodb.Table("whatsapp-chat-history")
 
 RAW_WINDOW = 20  # max raw messages to keep
