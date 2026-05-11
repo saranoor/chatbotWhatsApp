@@ -4,7 +4,7 @@ import httpx
 import asyncio
 import google.generativeai as genai
 import os
-from memory import get_conversation_context, save_message, maybe_summarize
+from .memory import get_conversation_context, save_message, maybe_summarize
 
 # --- 1. Initialization (Outside the lambda_handler for performance) ---
 secrets = boto3.client("secretsmanager")
@@ -182,7 +182,7 @@ async def get_ai_answer(user_input: str, whatsapp_number: str):
             {user_input}"""
 
         model = genai.GenerativeModel(
-            "gemini-2.5-flash", system_instruction="TRAVEL_BOT_INSTRUCTIONS"
+            "gemini-2.5-flash", system_instruction=TRAVEL_BOT_INSTRUCTIONS
         )
         response = model.generate_content(grounded_prompt)
         answer = response.text
