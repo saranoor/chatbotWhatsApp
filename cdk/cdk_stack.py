@@ -97,8 +97,6 @@ class WhatsappBotStack(Stack):
         # 5. SQS Event Source
         handler.add_event_source(events.SqsEventSource(queue))
 
-        from storage_cdk import StorageStack  # only if needed
-
         storage_table = dynamodb.Table.from_table_name(
             self, "ChatHistoryTable", "whatsapp-chat-history"
         )
