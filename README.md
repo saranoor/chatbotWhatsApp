@@ -1,4 +1,4 @@
-# Project Name
+# RAG Based chatbot integrated with whatsapp
 
 ## Problem
 
@@ -10,7 +10,17 @@ Utilized an AI model with guardrails to answer customer/user questions.
 ## Architectural Diagram
 ![Alt text](images/architectural-diagram.png)
 
-## DEMO 
+## Data Ingestion Pipeline
+
+The project includes an automated data ingestion pipeline to populate the RAG (Retrieval-Augmented Generation) knowledge base.
+
+1.  **Storage**: Documents are stored in an Amazon S3 bucket.
+2.  **Trigger**: An S3 Event Notification triggers a Lambda function whenever a new document is uploaded.
+3.  **Processing**: The Ingestion Lambda:
+    *   Extracts text from supported file types (`.pdf`, `.docx`, `.txt`).
+    *   Chunks the text into manageable pieces with overlap.
+    *   Generates vector embeddings using **Google Gemini** (`models/gemini-embedding-2`).
+    *   Indexes the chunks into an **Amazon OpenSearch** domain.
 
 ## Setup
 
@@ -24,29 +34,31 @@ Follow these steps to deploy and run the project in a cloud environment:
     - Start using the whatsapp META API
     - Send and receieve message on your business number
    - AWS access (must have access to aws account)
+   - Google AI API Key (for Gemini embeddings and LLM) stored in AWS Secrets Manager as `llm_api_key`.
 
 2. **Configuration**
    - Set up environment variables in local or configure them in cloud using AWS secret manager
+   - AWS infrastructure is defined using AWS CDK in the `cdk/` directory.
 
-   - AWS Resource creation and configure in cloud services will be done using cdk_stack.py
-   
 3. **Deployment**
-   - make sure aws access key and secret are set in github
-   - push code to github
-   - deploy.yml will automatically do the following
-        - install dependencies
-        - run unit test cases
-        - log in to aws
-        - deploy.yml will create an image and push it to AWS ECR
-        - deploy infrastructure
-        - update lambda function with the new image
-    - may need to enable logs manually if aws xray are not active
+   - Ensure AWS credentials (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`) are configured in GitHub Actions secrets.
+   - Push code to the `main` branch to trigger the `deploy.yml` workflow.
+   - The deployment workflow performs the following:
+        - **Unit Testing**: Runs tests using `pytest`.
+        - **Infrastructure**: Deploys/updates AWS resources using CDK (`cdk deploy --all`).
+        - **Main Chatbot Lambda**: 
+            - Builds a Docker image using `Dockerfile.aws`.
+            - Pushes the image to Amazon ECR.
+            - Updates the Lambda function to use the new image.
+        - **Ingestion Lambda**:
+            - Packages the `app/ingestion` code and its dependencies into a ZIP file.
+            - Uploads the ZIP to a deployment S3 bucket.
+            - Updates the Ingestion Lambda function code from the S3 object.
    
 4. **Verification**
-   - How to verify the deployment was successful
-        - send a message to your business number and see if you recieve response back
-   - Where to find logs or monitoring
-        - checks log groups and xray
+   - **Chatbot**: Send a message to your registered WhatsApp business number.
+   - **Ingestion**: Upload a document to the `DocumentsBucket` in S3 and check CloudWatch logs for the `Processor` Lambda to verify indexing.
+   - **Monitoring**: Check CloudWatch Log Groups and AWS X-Ray for tracing.
 
 ### Local Setup
 
