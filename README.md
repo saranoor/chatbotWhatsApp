@@ -57,7 +57,7 @@ Follow these steps to deploy and run the project in a cloud environment:
    
 4. **Verification**
    - **Chatbot**: Send a message to your registered WhatsApp business number.
-   - **Ingestion**: Upload a document to the `DocumentsBucket` in S3 and check CloudWatch logs for the `Processor` Lambda to verify indexing.
+   - **Ingestion**: Upload a document to the `DocumentsBucket` (ragingestion-documentsbucket9ec9deb9-x4ohvdbmcljs) in S3 and check CloudWatch logs for the `Processor` Lambda to verify indexing.
    - **Monitoring**: Check CloudWatch Log Groups and AWS X-Ray for tracing.
 
 ### Local Setup
@@ -66,6 +66,8 @@ Follow these steps to run the project on your local machine:
 #TODO: update later
 
 ## Challenges:
-    # TOD0: add technical challenges
+    1. Some messages were sent by customers, but customers received their reply after many hours?
+    2. A single user message is resulting in 2 replies?
+
 ## Design Document
-    # TODO: add link to design documents
+    (require access)
