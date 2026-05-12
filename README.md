@@ -10,18 +10,6 @@ Utilized an AI model with guardrails to answer customer/user questions.
 ## Architectural Diagram
 ![Alt text](images/architectural-diagram.png)
 
-## Data Ingestion Pipeline
-
-The project includes an automated data ingestion pipeline to populate the RAG (Retrieval-Augmented Generation) knowledge base.
-
-1.  **Storage**: Documents are stored in an Amazon S3 bucket.
-2.  **Trigger**: An S3 Event Notification triggers a Lambda function whenever a new document is uploaded.
-3.  **Processing**: The Ingestion Lambda:
-    *   Extracts text from supported file types (`.pdf`, `.docx`, `.txt`).
-    *   Chunks the text into manageable pieces with overlap.
-    *   Generates vector embeddings using **Google Gemini** (`models/gemini-embedding-2`).
-    *   Indexes the chunks into an **Amazon OpenSearch** domain.
-
 ## Setup
 
 ### Cloud Setup
@@ -64,6 +52,18 @@ Follow these steps to deploy and run the project in a cloud environment:
 
 Follow these steps to run the project on your local machine:
 #TODO: update later
+
+## Data Ingestion Pipeline
+
+The project includes an automated data ingestion pipeline to populate the RAG (Retrieval-Augmented Generation) knowledge base.
+
+1.  **Storage**: Documents are stored in an Amazon S3 bucket.
+2.  **Trigger**: An S3 Event Notification triggers a Lambda function whenever a new document is uploaded.
+3.  **Processing**: The Ingestion Lambda:
+    *   Extracts text from supported file types (`.pdf`, `.docx`, `.txt`).
+    *   Chunks the text into manageable pieces with overlap.
+    *   Generates vector embeddings using **Google Gemini** (`models/gemini-embedding-2`).
+    *   Indexes the chunks into an **Amazon OpenSearch** domain.
 
 ## Challenges:
     1. Some messages were sent by customers, but customers received their reply after many hours?
